@@ -1,13 +1,18 @@
 # ---------------------------------------------------------------------------- #
 #                         Stage 1: Download the models                         #
 # ---------------------------------------------------------------------------- #
-FROM alpine/git:2.43.0 as download
+# Используем python-образ для установки huggingface-cli
+FROM python:3.9-slim as download
 
-RUN apk add --no-cache wget && \
-    # Скачиваем Pony Diffusion V6 XL. 
-    # ВАЖНО: Если ссылка устареет, обнови её ниже на новую с Civitai.
-    wget -q -O /model.safetensors https://huggingface.co/LyliaEngine/Pony_Diffusion_V6_XL/resolve/main/ponyDiffusionV6XL_v6StartWithThisOne.safetensors
-    
+RUN pip install --no-cache-dir huggingface_hub[cli]
+
+# Скачиваем Pony Diffusion V6 XL с Hugging Face
+# HF_HUB_ENABLE_HF_TRANSFER=1 включает многопоточное скачивание для скорости
+RUN HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli download \
+    LyliaEngine/Pony_Diffusion_V6_XL \
+    ponyDiffusionV6XL_v6StartWithThisOne.safetensors \
+    --local-dir /model \
+    --local-dir-use-symlinks False
 
 # ---------------------------------------------------------------------------- #
 #                        Stage 2: Build the final image                        #
@@ -36,8 +41,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements_versions.txt && \
     python -c "from launch import prepare_environment; prepare_environment()" --skip-torch-cuda-test
 
-# Копируем модель сразу в папку Checkpoints внутри репозитория WebUI
-COPY --from=download /model.safetensors /stable-diffusion-webui/models/Stable-diffusion/ponyDiffusionV6XL.safetensors
+# Копируем модель из Stage 1 в папку Checkpoints внутри WebUI
+COPY --from=download /model/ponyDiffusionV6XL_v6StartWithThisOne.safetensors /stable-diffusion-webui/models/Stable-diffusion/ponyDiffusionV6XL.safetensors
 
 # install dependencies
 COPY requirements.txt .
