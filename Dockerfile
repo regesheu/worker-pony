@@ -1,18 +1,12 @@
 # ---------------------------------------------------------------------------- #
 #                         Stage 1: Download the models                         #
 # ---------------------------------------------------------------------------- #
-# Используем python-образ для установки huggingface-cli
-FROM python:3.9-slim as download
+FROM alpine/git:2.43.0 as download
 
-RUN pip install --no-cache-dir huggingface_hub[cli]
-
-# Скачиваем Pony Diffusion V6 XL с Hugging Face
-# HF_HUB_ENABLE_HF_TRANSFER=1 включает многопоточное скачивание для скорости
-RUN HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli download \
-    LyliaEngine/Pony_Diffusion_V6_XL \
-    ponyDiffusionV6XL_v6StartWithThisOne.safetensors \
-    --local-dir /model \
-    --local-dir-use-symlinks False
+# NOTE: CivitAI usually requires an API token, so you need to add it in the header
+#       of the wget command if you're using a model from CivitAI.
+RUN apk add --no-cache wget && \
+    wget -q -O /model.safetensors https://huggingface.co/XpucT/Deliberate/resolve/main/Deliberate_v6.safetensors
 
 # ---------------------------------------------------------------------------- #
 #                        Stage 2: Build the final image                        #
@@ -41,8 +35,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements_versions.txt && \
     python -c "from launch import prepare_environment; prepare_environment()" --skip-torch-cuda-test
 
-# Копируем модель из Stage 1 в папку Checkpoints внутри WebUI
-COPY --from=download /model/ponyDiffusionV6XL_v6StartWithThisOne.safetensors /stable-diffusion-webui/models/Stable-diffusion/ponyDiffusionV6XL.safetensors
+COPY --from=download /model.safetensors /model.safetensors
 
 # install dependencies
 COPY requirements.txt .
