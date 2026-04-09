@@ -6,7 +6,8 @@ FROM alpine/git:2.43.0 as download
 RUN apk add --no-cache wget && \
     # Скачиваем Pony Diffusion V6 XL. 
     # ВАЖНО: Если ссылка устареет, обнови её ниже на новую с Civitai.
-    wget -q -O /model.safetensors https://huggingface.co/LyliaEngine/Pony_Diffusion_V6_XL/resolve/main/ponyDiffusionV6XL_v6StartWithThisOne.safetensors?download=true 
+    wget -q -O /model.safetensors https://huggingface.co/LyliaEngine/Pony_Diffusion_V6_XL/resolve/main/ponyDiffusionV6XL_v6StartWithThisOne.safetensors
+    
 
 # ---------------------------------------------------------------------------- #
 #                        Stage 2: Build the final image                        #
