@@ -6,7 +6,7 @@ FROM alpine/git:2.43.0 as download
 RUN apk add --no-cache wget && \
     # Скачиваем Pony Diffusion V6 XL. 
     # ВАЖНО: Если ссылка устареет, обнови её ниже на новую с Civitai.
-    wget -q -O /model.safetensors "https://regesh.ru/pony/ponyDiffusionV6XL.safetensors"
+    wget --timeout=600 -O model.safetensors "https://regesh.ru/pony/ponyDiffusionV6XL.safetensors"
 
 # ---------------------------------------------------------------------------- #
 #                        Stage 2: Build the final image                        #
